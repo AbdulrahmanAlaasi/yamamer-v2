@@ -1,0 +1,22 @@
+# Virtual environment - never copy this
+# The container installs its own packages from requirements.txt
+venv/
+
+# Python cache files - not needed
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment file - never bake secrets into an image
+.env
+
+# Database files
+*.sqlite3
+
+# VS Code settings
+.vscode/
+
+# Git files
+.git/
+.gitignore

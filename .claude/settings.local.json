@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python manage.py migrate)",
+      "Bash(npm install:*)",
+      "Bash(ls /c/Users/User/Desktop/*.png /c/Users/User/Downloads/*.png)",
+      "mcp__Claude_Preview__preview_start",
+      "WebFetch(domain:yu.edu.sa)"
+    ]
+  }
+}
