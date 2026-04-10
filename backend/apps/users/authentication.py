@@ -1,8 +1,26 @@
 import jwt
+import base64
 from django.conf import settings
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from apps.users.models import User
+
+
+def _get_jwt_secret():
+    """
+    Supabase JWT secrets are base64-encoded in the dashboard.
+    PyJWT needs the raw bytes for HS256 verification.
+    Falls back to using the string as-is if base64 decoding fails.
+    """
+    secret = settings.SUPABASE_JWT_SECRET
+    try:
+        # Add padding if needed and decode
+        padding = 4 - len(secret) % 4
+        if padding != 4:
+            secret += '=' * padding
+        return base64.b64decode(secret)
+    except Exception:
+        return secret.encode('utf-8') if isinstance(secret, str) else secret
 
 
 class SupabaseAuthentication(BaseAuthentication):
@@ -18,17 +36,19 @@ class SupabaseAuthentication(BaseAuthentication):
 
         token = auth_header.split(' ', 1)[1]
 
+        secret = _get_jwt_secret()
+
         try:
             payload = jwt.decode(
                 token,
-                settings.SUPABASE_JWT_SECRET,
+                secret,
                 algorithms=['HS256'],
                 audience='authenticated',
             )
         except jwt.ExpiredSignatureError:
             raise AuthenticationFailed('Token has expired.')
-        except jwt.InvalidTokenError:
-            raise AuthenticationFailed('Invalid token.')
+        except jwt.InvalidTokenError as e:
+            raise AuthenticationFailed(f'Invalid token: {e}')
 
         supabase_uid = payload.get('sub')
         if not supabase_uid:
