@@ -1,108 +1,145 @@
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
+import { LogIn, UserPlus, Eye, EyeOff, ArrowLeft, Bot } from 'lucide-react'
 
 export default function Login() {
-  const [isSignUp, setIsSignUp] = useState(false)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
   const { signIn, signUp } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+  const [tab, setTab]           = useState('signin')
+  const [email, setEmail]       = useState('')
+  const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [showPass, setShowPass] = useState(false)
+  const [loading, setLoading]   = useState(false)
+  const [error, setError]       = useState('')
+  const [success, setSuccess]   = useState('')
 
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setError(''); setSuccess(''); setLoading(true)
     try {
-      if (isSignUp) {
-        const { error } = await signUp(email, password, fullName)
-        if (error) throw error
-        setError('Check your email to confirm your account!')
-      } else {
+      if (tab === 'signin') {
         const { error } = await signIn(email, password)
         if (error) throw error
         navigate('/')
+      } else {
+        const { error } = await signUp(email, password, fullName)
+        if (error) throw error
+        setSuccess('Account created! Check your email to confirm, then sign in.')
+        setTab('signin')
       }
     } catch (err) {
-      setError(err.message)
+      setError(err.message || 'Something went wrong.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <img src="/logo.png" alt="Yamamer" className="w-20 h-20 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900">Yamamer Chatbot</h1>
-          <p className="text-gray-500 mt-1">Al Yamamah University Assistant</p>
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4">
+      <div className="w-full max-w-sm">
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-14 h-14 rounded-2xl bg-violet-600 flex items-center justify-center mb-3 shadow-lg shadow-violet-200">
+            <Bot size={28} className="text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-violet-900">Welcome to Yamamer</h1>
+          <p className="text-gray-500 text-sm mt-1">Al Yamamah University Assistant</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-xl font-semibold mb-6">{isSignUp ? 'Create Account' : 'Sign In'}</h2>
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="flex border-b border-gray-100">
+            {[
+              { key: 'signin', label: 'Sign In',  icon: LogIn    },
+              { key: 'signup', label: 'Sign Up',  icon: UserPlus },
+            ].map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => { setTab(key); setError(''); setSuccess('') }}
+                className={`flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-semibold transition-colors cursor-pointer ${
+                  tab === key
+                    ? 'text-violet-700 border-b-2 border-violet-600 bg-violet-50/50'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <Icon size={15} />
+                {label}
+              </button>
+            ))}
+          </div>
 
-          {error && (
-            <div className={`mb-4 p-3 rounded-lg text-sm ${error.includes('Check your email') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignUp && (
-              <input
-                type="text"
-                placeholder="Full Name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                required
-              />
+          <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
+            {success && (
+              <div className="px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">{success}</div>
             )}
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              required
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              required
-              minLength={6}
-            />
+            {error && (
+              <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{error}</div>
+            )}
+
+            {tab === 'signup' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                  required
+                  placeholder="Abdullah Al-Hassan"
+                  className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                placeholder="you@yu.edu.sa"
+                className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+              <div className="relative">
+                <input
+                  type={showPass ? 'text' : 'password'}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  placeholder="••••••••"
+                  className="w-full px-3.5 py-2.5 pr-10 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPass(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                >
+                  {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl transition disabled:opacity-50"
+              className="w-full py-2.5 bg-violet-600 text-white text-sm font-semibold rounded-xl hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer mt-1"
             >
-              {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
+              {loading ? 'Please wait…' : tab === 'signin' ? 'Sign In' : 'Create Account'}
             </button>
           </form>
-
-          <p className="text-center text-sm text-gray-500 mt-6">
-            {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
-            <button onClick={() => { setIsSignUp(!isSignUp); setError('') }} className="text-orange-500 font-medium hover:underline">
-              {isSignUp ? 'Sign In' : 'Sign Up'}
-            </button>
-          </p>
         </div>
 
-        <button
-          onClick={() => navigate('/')}
-          className="w-full mt-4 py-3 text-gray-500 hover:text-gray-700 text-sm font-medium transition"
-        >
-          Continue as Guest
-        </button>
+        <div className="mt-4 text-center">
+          <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-violet-700 transition-colors cursor-pointer">
+            <ArrowLeft size={14} />
+            Back to chat
+          </Link>
+        </div>
       </div>
     </div>
   )
