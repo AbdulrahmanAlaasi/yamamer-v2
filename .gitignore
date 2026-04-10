@@ -1,22 +1,43 @@
 # Python
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
 *.egg-info/
-venv/
-.env
-
-# Node
-node_modules/
 dist/
+build/
+.eggs/
 
-# IDE
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Django
+*.sqlite3
+/staticfiles/
+/media/
+
+# Environment / secrets
+.env
+*.env
+
+# Node / Frontend
+node_modules/
+frontend/dist/
+frontend/.env
+
+# VS Code
 .vscode/
-.idea/
-*.swp
 
-# OS
+# macOS
 .DS_Store
-Thumbs.db
+__MACOSX/
 
-# Media uploads
-media/
+# Logs
+*.log
+
+# Docker
+*.override.yml
