@@ -1,101 +1,188 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, FileText, Download, Search } from 'lucide-react'
+import { getForms } from '../lib/api'
+import {
+  FileText, Download, ExternalLink, Search,
+  BookOpen, GraduationCap, DollarSign, ClipboardList, Award, Star
+} from 'lucide-react'
 
-const CATEGORIES = ['all', 'registration', 'grades', 'graduation', 'financial', 'general', 'internship']
+const CATEGORY_META = {
+  registration: { label: 'Registration',   icon: ClipboardList, color: 'bg-blue-50 text-blue-700 border-blue-100'    },
+  graduation:   { label: 'Graduation',      icon: GraduationCap, color: 'bg-purple-50 text-purple-700 border-purple-100' },
+  financial:    { label: 'Financial',       icon: DollarSign,    color: 'bg-green-50 text-green-700 border-green-100'  },
+  internship:   { label: 'Internship/COOP', icon: Star,          color: 'bg-orange-50 text-orange-700 border-orange-100' },
+  grades:       { label: 'Grades & Exams',  icon: Award,         color: 'bg-yellow-50 text-yellow-700 border-yellow-100' },
+  general:      { label: 'General',         icon: BookOpen,      color: 'bg-gray-50 text-gray-700 border-gray-100'     },
+}
+
+const ALL_CATS = ['all', ...Object.keys(CATEGORY_META)]
+
+function FormCard({ form }) {
+  const meta  = CATEGORY_META[form.category] || CATEGORY_META.general
+  const Icon  = meta.icon
+  const link  = form.download_url || form.file_url || null
+  const isPdf = link?.toLowerCase().endsWith('.pdf')
+
+  return (
+    <div className="group bg-white rounded-2xl border border-gray-100 p-5 hover:border-violet-200 hover:shadow-md transition-all duration-200 flex flex-col gap-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${meta.color} shrink-0`}>
+          <Icon size={17} />
+        </div>
+        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${meta.color}`}>
+          {meta.label}
+        </span>
+      </div>
+
+      <div className="flex-1">
+        <h3 className="font-semibold text-gray-900 text-sm leading-snug mb-1.5">{form.title}</h3>
+        {form.description && (
+          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{form.description}</p>
+        )}
+      </div>
+
+      {link ? (
+        <a
+          href={link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 py-2.5 px-4 bg-violet-600 text-white text-xs font-semibold rounded-xl hover:bg-violet-700 transition-colors cursor-pointer group-hover:shadow-sm group-hover:shadow-violet-200"
+        >
+          {isPdf ? <Download size={13} /> : <ExternalLink size={13} />}
+          {isPdf ? 'Download PDF' : 'Open Form'}
+        </a>
+      ) : (
+        <div className="py-2.5 px-4 bg-gray-50 text-gray-400 text-xs rounded-xl text-center">
+          Contact Registrar's Office
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function Forms() {
-  const navigate = useNavigate()
-  const [forms, setForms] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all')
-  const [search, setSearch] = useState('')
+  const [forms, setForms]       = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [search, setSearch]     = useState('')
+  const [category, setCategory] = useState('all')
 
   useEffect(() => {
-    fetch('/api/chat/forms/')
-      .then(r => r.json())
+    getForms('')
       .then(data => setForms(data.results || data))
-      .catch(() => {})
+      .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
 
   const filtered = forms.filter(f => {
-    const matchCat = filter === 'all' || f.category === filter
-    const matchSearch = !search || f.title.toLowerCase().includes(search.toLowerCase())
-    return matchCat && matchSearch
+    const matchCat  = category === 'all' || f.category === category
+    const matchText = !search || f.title.toLowerCase().includes(search.toLowerCase()) || f.description?.toLowerCase().includes(search.toLowerCase())
+    return matchCat && matchText
   })
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate('/')} className="p-1 text-gray-400 hover:text-gray-600">
-          <ArrowLeft size={20} />
-        </button>
-        <FileText size={20} className="text-orange-500" />
-        <h1 className="text-lg font-bold text-gray-900">University Forms</h1>
-      </header>
+  // Group by category for display when showing all
+  const grouped = Object.keys(CATEGORY_META).reduce((acc, cat) => {
+    const items = filtered.filter(f => f.category === cat)
+    if (items.length) acc[cat] = items
+    return acc
+  }, {})
 
-      <div className="max-w-3xl mx-auto p-4">
-        {/* Search & Filter */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <div className="relative flex-1">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-violet-50/60 to-white pt-20 pb-12">
+      <div className="max-w-5xl mx-auto px-4">
+
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-violet-600 shadow-lg shadow-violet-200 mb-4">
+            <FileText size={24} className="text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-violet-900 mb-2">University Forms & Documents</h1>
+          <p className="text-gray-500 text-sm max-w-md mx-auto">
+            Download or access official forms, policy documents, and portals for all university services.
+          </p>
+        </div>
+
+        {/* Search */}
+        <div className="mb-5">
+          <div className="relative max-w-lg mx-auto">
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
-              type="text"
-              placeholder="Search forms..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+              placeholder="Search forms and policies…"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition-all"
             />
-          </div>
-          <div className="flex gap-1 flex-wrap">
-            {CATEGORIES.map(c => (
-              <button
-                key={c}
-                onClick={() => setFilter(c)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition capitalize ${
-                  filter === c ? 'bg-orange-500 text-white' : 'bg-white border border-gray-200 text-gray-500 hover:border-orange-300'
-                }`}
-              >
-                {c}
-              </button>
-            ))}
           </div>
         </div>
 
+        {/* Category tabs */}
+        <div className="flex gap-2 flex-wrap mb-6 justify-center">
+          {ALL_CATS.map(cat => {
+            const meta  = CATEGORY_META[cat]
+            const label = cat === 'all' ? 'All Forms' : (meta?.label || cat)
+            const count = cat === 'all' ? forms.length : forms.filter(f => f.category === cat).length
+            return (
+              <button
+                key={cat}
+                onClick={() => setCategory(cat)}
+                className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
+                  category === cat
+                    ? 'bg-violet-600 text-white shadow-sm shadow-violet-200'
+                    : 'bg-white border border-gray-200 text-gray-600 hover:border-violet-300 hover:text-violet-700'
+                }`}
+              >
+                {label}
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${category === cat ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                  {count}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Content */}
         {loading ? (
-          <p className="text-center py-12 text-gray-400">Loading forms...</p>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-12">
-            <FileText size={40} className="mx-auto text-gray-300 mb-3" />
-            <p className="text-gray-400 text-sm">No forms found.</p>
-          </div>
-        ) : (
-          <div className="grid gap-3">
-            {filtered.map(form => (
-              <div key={form.id} className="bg-white rounded-xl border p-4 flex items-center gap-4 hover:shadow-sm transition">
-                <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
-                  <FileText size={20} className="text-orange-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">{form.title}</p>
-                  {form.description && <p className="text-xs text-gray-500 mt-0.5 truncate">{form.description}</p>}
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 mt-1 inline-block capitalize">{form.category}</span>
-                </div>
-                {(form.file || form.file_url) && (
-                  <a
-                    href={form.file || form.file_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition"
-                  >
-                    <Download size={18} />
-                  </a>
-                )}
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-44 bg-gray-100 rounded-2xl animate-pulse" />
             ))}
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-16">
+            <FileText size={32} className="text-gray-200 mx-auto mb-3" />
+            <p className="text-gray-500 font-medium">No forms found</p>
+            <p className="text-sm text-gray-400">Try a different search term or category</p>
+          </div>
+        ) : category !== 'all' ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map(form => <FormCard key={form.id} form={form} />)}
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {Object.entries(grouped).map(([cat, items]) => {
+              const meta = CATEGORY_META[cat]
+              const Icon = meta?.icon || BookOpen
+              return (
+                <div key={cat}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center border ${meta?.color}`}>
+                      <Icon size={14} />
+                    </div>
+                    <h2 className="font-bold text-gray-800 text-sm">{meta?.label || cat}</h2>
+                    <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{items.length}</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {items.map(form => <FormCard key={form.id} form={form} />)}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         )}
+
+        <p className="text-center text-xs text-gray-400 mt-10">
+          For forms not listed here, visit{' '}
+          <a href="https://yu.edu.sa/resources/forms/" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline cursor-pointer">yu.edu.sa/resources/forms</a>{' '}
+          or contact the Registrar's Office.
+        </p>
       </div>
     </div>
   )

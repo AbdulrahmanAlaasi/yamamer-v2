@@ -1,141 +1,217 @@
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, BookOpen, Users, Info, FileText, GraduationCap, Building2, Globe, Heart, Search, HelpCircle, Megaphone } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import {
+  LayoutGrid, BookOpen, Users, GraduationCap, DollarSign, FileText, Bell,
+  MessageSquare, Building2, Globe, Phone, Mail, MapPin, ExternalLink,
+  ClipboardList, Star, Award, HelpCircle, Shield
+} from 'lucide-react'
 
-const SECTIONS = [
+const DIRECTORY = [
+  {
+    title: 'Quick Links',
+    icon: LayoutGrid,
+    color: 'violet',
+    links: [
+      { label: 'Chat with Yamamer', to: '/', internal: true, icon: MessageSquare },
+      { label: 'University Forms', to: '/forms', internal: true, icon: FileText },
+      { label: 'Announcements & News', to: '/announcements', internal: true, icon: Bell },
+      { label: 'EduGate Student Portal', href: 'https://edugate.yu.edu.sa', icon: Globe },
+    ],
+  },
   {
     title: 'Academics',
-    icon: <BookOpen className="text-blue-500" />,
+    icon: BookOpen,
+    color: 'blue',
     links: [
-      { name: 'College of Business Administration', url: 'https://yu.edu.sa/academics/cob/' },
-      { name: 'College of Engineering & Architecture', url: 'https://yu.edu.sa/academics/coea/' },
-      { name: 'College of Law', url: 'https://yu.edu.sa/academics/law/' },
-      { name: 'Graduate Programs', url: 'https://yu.edu.sa/academics/graduate-studies/' },
-      { name: 'English Language Program', url: 'https://yu.edu.sa/academics/interlink/' },
-    ]
+      { label: 'Colleges & Programs', href: 'https://yu.edu.sa/en/academics/', icon: Building2 },
+      { label: 'Course Catalog', href: 'https://yu.edu.sa/en/academics/course-catalog/', icon: BookOpen },
+      { label: 'Academic Calendar', href: 'https://yu.edu.sa/en/academics/academic-calendar/', icon: ClipboardList },
+      { label: 'Library', href: 'https://yu.edu.sa/en/library/', icon: BookOpen },
+    ],
   },
   {
-    title: 'Admissions',
-    icon: <GraduationCap className="text-orange-500" />,
+    title: 'Registration & Records',
+    icon: ClipboardList,
+    color: 'green',
     links: [
-      { name: 'How to Apply', url: 'https://yu.edu.sa/admission/how-to-apply/' },
-      { name: 'Undergraduate Admission', url: 'https://yu.edu.sa/admission/undergraduate/' },
-      { name: 'Postgraduate Admission', url: 'https://yu.edu.sa/admission/postgraduate/' },
-      { name: 'Tuition & Fees', url: 'https://yu.edu.sa/admission/tuition-fees/' },
-      { name: 'Online Application Portal', url: 'https://edugate.yu.edu.sa/yu/init?service=applicationOnlineEn' },
-    ]
+      { label: 'Registrar\'s Office', href: 'https://yu.edu.sa/en/registrar/', icon: Building2 },
+      { label: 'Online Registration (EduGate)', href: 'https://edugate.yu.edu.sa', icon: Globe },
+      { label: 'Transcript Request', href: 'https://yu.edu.sa/wp-content/uploads/2020/07/7-نموذج-طلب-سجل-أكاديمي-رسمي.pdf', icon: FileText },
+      { label: 'Grade Appeal Form', href: 'https://yu.edu.sa/wp-content/uploads/2020/07/9-نموذج-الإعتراض-على-درجة.pdf', icon: Award },
+    ],
   },
   {
-    title: 'Student Life',
-    icon: <Users className="text-purple-500" />,
+    title: 'Financial Affairs',
+    icon: DollarSign,
+    color: 'emerald',
     links: [
-      { name: 'Student Clubs', url: 'https://yu.edu.sa/student-life/student-clubs/' },
-      { name: 'Counseling & Advising', url: 'https://yu.edu.sa/student-life/counseling-advising/' },
-      { name: 'Career Services', url: 'https://yu.edu.sa/student-life/career-services/' },
-      { name: 'Sports & Recreation', url: 'https://yu.edu.sa/student-life/sports-recreation/' },
-    ]
+      { label: 'Tuition & Fees', href: 'https://yu.edu.sa/en/financial-affairs/', icon: DollarSign },
+      { label: 'SADAD Payment Guide', href: 'https://yu.edu.sa/wp-content/uploads/2020/07/خطوات-ومميزات-نظام-سداد.pdf', icon: FileText },
+      { label: 'Refund Policy', href: 'https://yu.edu.sa/wp-content/uploads/2023/02/Refund-of-Tuition-and-Fees-Policy.pdf', icon: Shield },
+      { label: 'Scholarships & Aid', href: 'https://yu.edu.sa/en/student-affairs/scholarships/', icon: Star },
+    ],
   },
   {
-    title: 'Resources',
-    icon: <FileText className="text-emerald-500" />,
+    title: 'Student Affairs',
+    icon: Users,
+    color: 'purple',
     links: [
-      { name: 'University Forms', path: '/forms' },
-      { name: 'Announcements', path: '/announcements' },
-      { name: 'The Library', url: 'https://library.yu.edu.sa/' },
-      { name: 'Co-op Hub', url: 'https://coophub.yu.edu.sa/' },
-    ]
+      { label: 'Student Affairs Office', href: 'https://yu.edu.sa/en/student-affairs/', icon: Building2 },
+      { label: 'Co-op / Internship Portal', href: 'https://csc.yu.edu.sa/login', icon: Star },
+      { label: 'Student Activities', href: 'https://yu.edu.sa/en/student-affairs/student-activities/', icon: Users },
+      { label: 'Counseling Services', href: 'https://yu.edu.sa/en/student-affairs/', icon: HelpCircle },
+    ],
   },
   {
-    title: 'About YU',
-    icon: <Building2 className="text-gray-500" />,
+    title: 'Graduation',
+    icon: GraduationCap,
+    color: 'amber',
     links: [
-      { name: 'Mission & Vision', url: 'https://yu.edu.sa/about/mission-vision/' },
-      { name: 'Rector\'s Message', url: 'https://yu.edu.sa/about/rectors-message/' },
-      { name: 'Campus Map', url: 'https://yu.edu.sa/about/campus-map/' },
-      { name: 'Accreditation', url: 'https://yu.edu.sa/about/accreditation/' },
-    ]
+      { label: 'Graduation Requirements', href: 'https://yu.edu.sa/en/academics/', icon: GraduationCap },
+      { label: 'Graduation Document Portal', href: 'https://edugate.yu.edu.sa/yu/init?service=graduationDocEn', icon: Globe },
+      { label: 'Graduate Studies Policy', href: 'https://yu.edu.sa/wp-content/uploads/2024/04/%D9%84%D8%A7%D8%A6%D8%AD%D8%A9-%D8%A7%D9%84%D8%AF%D8%B1%D8%A7%D8%B3%D8%A7%D8%AA-%D8%A7%D9%84%D8%B9%D9%84%D9%8A%D8%A7-Last-Version-2024.pdf', icon: FileText },
+      { label: 'Alumni Portal', href: 'https://yu.edu.sa/en/alumni/', icon: Users },
+    ],
   },
   {
-    title: 'Global Engagement',
-    icon: <Globe className="text-cyan-500" />,
+    title: 'Policies & Documents',
+    icon: Shield,
+    color: 'red',
     links: [
-      { name: 'Global Engagement Office', url: 'https://yu.edu.sa/global-engagement-office/' },
-      { name: 'International Partners', url: 'https://yu.edu.sa/about/international-partners/' },
-    ]
-  }
+      { label: 'Examinations Policy', href: 'https://yu.edu.sa/wp-content/uploads/2023/06/Updated-Examinations-Policy-and-Procedures-V-3.0.pdf', icon: FileText },
+      { label: 'Student Disciplinary Policy', href: 'https://yu.edu.sa/wp-content/uploads/2023/01/Students-Disciplinary-Policy-V-2.0.pdf', icon: Shield },
+      { label: 'Grievances Policy', href: 'https://yu.edu.sa/wp-content/uploads/2025/05/Grievances-and-Complaints-Policy-V2.1.pdf', icon: FileText },
+      { label: 'Academic Appeals Policy', href: 'https://yu.edu.sa/wp-content/uploads/2025/05/Policy-for-the-Academic-Appeal-Committee-V3.2.pdf', icon: Award },
+    ],
+  },
+  {
+    title: 'Contact & Location',
+    icon: Phone,
+    color: 'cyan',
+    links: [
+      { label: 'Contact Us Page', href: 'https://yu.edu.sa/en/contact/', icon: Phone },
+      { label: 'Campus Map', href: 'https://goo.gl/maps/yamamah', icon: MapPin },
+      { label: 'Reach the President', href: 'https://forms.yu.edu.sa/reach-the-president/', icon: Mail },
+      { label: 'Main Website', href: 'https://yu.edu.sa/en/', icon: Globe },
+    ],
+  },
 ]
 
-export default function Sitemap() {
-  const navigate = useNavigate()
+const COLOR_MAP = {
+  violet:  'bg-violet-50 text-violet-700 border-violet-100',
+  blue:    'bg-blue-50 text-blue-700 border-blue-100',
+  green:   'bg-green-50 text-green-700 border-green-100',
+  emerald: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+  purple:  'bg-purple-50 text-purple-700 border-purple-100',
+  amber:   'bg-amber-50 text-amber-700 border-amber-100',
+  red:     'bg-red-50 text-red-700 border-red-100',
+  cyan:    'bg-cyan-50 text-cyan-700 border-cyan-100',
+}
+
+function SectionCard({ section }) {
+  const Icon    = section.icon
+  const bgColor = COLOR_MAP[section.color] || COLOR_MAP.violet
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b px-4 py-3 flex items-center gap-3 sticky top-0 z-10">
-        <button onClick={() => navigate('/')} className="p-1 text-gray-400 hover:text-gray-600">
-          <ArrowLeft size={20} />
-        </button>
-        <Search size={20} className="text-orange-500" />
-        <h1 className="text-lg font-bold text-gray-900">University Directory</h1>
-      </header>
+    <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md transition-shadow duration-200">
+      <div className="flex items-center gap-2.5 mb-4">
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center border ${bgColor}`}>
+          <Icon size={16} />
+        </div>
+        <h2 className="font-bold text-gray-900 text-sm">{section.title}</h2>
+      </div>
+      <ul className="space-y-2">
+        {section.links.map((link, i) => {
+          const LinkIcon = link.icon || ExternalLink
+          const content = (
+            <span className="flex items-center gap-2.5 group">
+              <LinkIcon size={13} className="text-gray-400 group-hover:text-violet-500 transition-colors shrink-0" />
+              <span className="text-sm text-gray-700 group-hover:text-violet-700 transition-colors">{link.label}</span>
+              {!link.internal && <ExternalLink size={10} className="text-gray-300 group-hover:text-violet-400 transition-colors ml-auto" />}
+            </span>
+          )
+          if (link.internal) {
+            return (
+              <li key={i}>
+                <Link to={link.to} className="block py-1.5 px-2 rounded-lg hover:bg-violet-50 transition-colors cursor-pointer">
+                  {content}
+                </Link>
+              </li>
+            )
+          }
+          return (
+            <li key={i}>
+              <a href={link.href} target="_blank" rel="noopener noreferrer"
+                className="block py-1.5 px-2 rounded-lg hover:bg-violet-50 transition-colors cursor-pointer">
+                {content}
+              </a>
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
 
-      <div className="max-w-5xl mx-auto p-6">
-        <div className="mb-8 text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Explore Al Yamamah University</h2>
-          <p className="text-gray-500">Quick access to all university resources and services</p>
+export default function Sitemap() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-violet-50/60 to-white pt-20 pb-12">
+      <div className="max-w-5xl mx-auto px-4">
+
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-violet-600 shadow-lg shadow-violet-200 mb-4">
+            <LayoutGrid size={24} className="text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-violet-900 mb-2">University Directory</h1>
+          <p className="text-gray-500 text-sm max-w-sm mx-auto">
+            Quick access to all Al Yamamah University services, offices, portals, and resources.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {SECTIONS.map((section, idx) => (
-            <div key={idx} className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition group">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-gray-50 rounded-xl group-hover:scale-110 transition">
-                  {section.icon}
-                </div>
-                <h3 className="font-bold text-gray-900">{section.title}</h3>
-              </div>
-              <ul className="space-y-2">
-                {section.links.map((link, lIdx) => (
-                  <li key={lIdx}>
-                    {link.path ? (
-                      <button
-                        onClick={() => navigate(link.path)}
-                        className="text-sm text-gray-600 hover:text-orange-600 flex items-center gap-2 w-full text-left transition"
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-gray-200 group-hover/link:bg-orange-400" />
-                        {link.name}
-                      </button>
-                    ) : (
-                      <a
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-gray-600 hover:text-orange-600 flex items-center gap-2 transition group/link"
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-gray-200 group-hover/link:bg-orange-400" />
-                        {link.name}
-                      </a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
+        {/* Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {DIRECTORY.map((section, i) => (
+            <SectionCard key={i} section={section} />
           ))}
         </div>
 
-        <div className="mt-12 bg-orange-50 rounded-2xl p-8 flex flex-col md:flex-row items-center gap-6 border border-orange-100">
-          <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm shrink-0">
-            <HelpCircle size={32} className="text-orange-500" />
+        {/* Contact Info */}
+        <div className="mt-8 bg-white rounded-2xl border border-violet-100 p-6">
+          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Phone size={16} className="text-violet-600" />
+            Contact Information
+          </h3>
+          <div className="grid sm:grid-cols-3 gap-4 text-sm">
+            <div className="flex items-start gap-2.5">
+              <MapPin size={15} className="text-violet-500 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium text-gray-800">Address</p>
+                <p className="text-gray-500">Yarmouk Dist., Riyadh 13541, Saudi Arabia</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2.5">
+              <Phone size={15} className="text-violet-500 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium text-gray-800">Phone</p>
+                <p className="text-gray-500">+966 11 200 8500</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2.5">
+              <Mail size={15} className="text-violet-500 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium text-gray-800">Email</p>
+                <p className="text-gray-500">info@yu.edu.sa</p>
+              </div>
+            </div>
           </div>
-          <div className="text-center md:text-left">
-            <h4 className="text-lg font-bold text-gray-900 mb-1">Need help finding something?</h4>
-            <p className="text-sm text-gray-600">You can always ask Yamamer AI on the home screen for specific information or procedures.</p>
-          </div>
-          <button
-            onClick={() => navigate('/')}
-            className="px-6 py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition ml-auto"
-          >
-            Go to Chat
-          </button>
         </div>
+
+        <p className="text-center text-xs text-gray-400 mt-6">
+          Can't find what you need? Ask{' '}
+          <Link to="/" className="text-violet-600 hover:underline cursor-pointer">Yamamer chatbot</Link>{' '}
+          or visit{' '}
+          <a href="https://yu.edu.sa/en/" target="_blank" rel="noopener noreferrer" className="text-violet-600 hover:underline cursor-pointer">yu.edu.sa</a>.
+        </p>
       </div>
     </div>
   )

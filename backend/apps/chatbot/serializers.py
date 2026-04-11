@@ -47,10 +47,12 @@ class MissingQuestionSerializer(serializers.ModelSerializer):
 
 
 class UniversityFormSerializer(serializers.ModelSerializer):
+    download_url = serializers.ReadOnlyField()
+
     class Meta:
         model = UniversityForm
-        fields = ['id', 'title', 'description', 'category', 'file', 'file_url', 'status', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = ['id', 'title', 'description', 'category', 'file', 'file_url', 'download_url', 'status', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'download_url', 'created_at', 'updated_at']
 
 
 class AnnouncementSerializer(serializers.ModelSerializer):
@@ -58,3 +60,6 @@ class AnnouncementSerializer(serializers.ModelSerializer):
         model = Announcement
         fields = ['id', 'title', 'content', 'category', 'start_date', 'end_date', 'is_active', 'created_at']
         read_only_fields = ['id', 'created_at']
+
+    def validate_start_date(self, value):
+        return value

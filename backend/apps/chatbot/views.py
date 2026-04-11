@@ -96,9 +96,10 @@ class UniversityFormViewSet(viewsets.ModelViewSet):
         return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
-        if self.action in ('list', 'retrieve'):
-            return UniversityForm.objects.filter(status='published')
-        return UniversityForm.objects.all()
+        # Authenticated admins see all; anonymous users see only published
+        if self.request.user and self.request.user.is_authenticated:
+            return UniversityForm.objects.all()
+        return UniversityForm.objects.filter(status='published')
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
@@ -116,9 +117,10 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
-        if self.action in ('list', 'retrieve'):
-            return Announcement.objects.filter(is_active=True)
-        return Announcement.objects.all()
+        # Authenticated admins see all; anonymous users see only active
+        if self.request.user and self.request.user.is_authenticated:
+            return Announcement.objects.all()
+        return Announcement.objects.filter(is_active=True)
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)

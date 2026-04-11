@@ -7,6 +7,9 @@ import requests
 from xml.etree import ElementTree
 from html.parser import HTMLParser
 
+if sys.stdout.encoding != 'utf-8':
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'yamamer_project.settings')
 sys.path.insert(0, os.path.dirname(__file__))
 django.setup()

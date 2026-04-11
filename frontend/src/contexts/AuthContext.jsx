@@ -3,21 +3,45 @@ import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext({})
 
+const STORAGE_KEY = 'sb-quxdrwovgeoajezveiok-auth-token'
+
+function getStoredUser() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    const session = JSON.parse(raw)
+    // Reject if token is expired
+    if (session?.expires_at && session.expires_at * 1000 < Date.now()) return null
+    return session?.user ?? null
+  } catch {
+    return null
+  }
+}
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
+  // Seed from localStorage immediately so pages don't flash "unauthenticated"
+  const [user, setUser]       = useState(getStoredUser)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    // Try to confirm with Supabase (may hang/fail if project is paused)
+    const timeout = setTimeout(() => setLoading(false), 2000)
+
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setUser(session?.user ?? null)
+      })
+      .catch(() => {})
+      .finally(() => {
+        clearTimeout(timeout)
+        setLoading(false)
+      })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
     })
 
-    return () => subscription.unsubscribe()
+    return () => { subscription.unsubscribe(); clearTimeout(timeout) }
   }, [])
 
   const signIn = (email, password) => supabase.auth.signInWithPassword({ email, password })

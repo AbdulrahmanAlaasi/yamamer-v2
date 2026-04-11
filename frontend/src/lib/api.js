@@ -2,18 +2,29 @@ import { supabase } from './supabase'
 
 const API_BASE = '/api'
 
-async function getHeaders() {
-  const { data: { session } } = await supabase.auth.getSession()
+function getHeaders() {
+  // Read the Supabase session synchronously from localStorage to avoid
+  // blocking on supabase.auth.getSession() when the project is paused.
   const headers = { 'Content-Type': 'application/json' }
-  if (session?.access_token) {
-    headers['Authorization'] = `Bearer ${session.access_token}`
+  try {
+    const raw = localStorage.getItem('sb-quxdrwovgeoajezveiok-auth-token')
+    if (raw) {
+      const session = JSON.parse(raw)
+      const token = session?.access_token
+      const exp   = session?.expires_at
+      if (token && (!exp || exp * 1000 > Date.now())) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+    }
+  } catch {
+    // No valid session — public endpoints will still work
   }
   return headers
 }
 
 // ── Chat ──────────────────────────────────────────────────
 export async function sendMessage(message, sessionId = null, language = 'en') {
-  const headers = await getHeaders()
+  const headers = getHeaders()
   const res = await fetch(`${API_BASE}/chat/`, {
     method: 'POST',
     headers,
@@ -24,7 +35,7 @@ export async function sendMessage(message, sessionId = null, language = 'en') {
 }
 
 export async function getSessions() {
-  const headers = await getHeaders()
+  const headers = getHeaders()
   const res = await fetch(`${API_BASE}/chat/sessions/`, { headers })
   if (!res.ok) throw new Error('Failed to fetch sessions')
   return res.json()
@@ -32,14 +43,17 @@ export async function getSessions() {
 
 // ── Knowledge Base ────────────────────────────────────────
 export async function getKnowledgeBase(params = '') {
-  const headers = await getHeaders()
-  const res = await fetch(`${API_BASE}/chat/knowledge-base/${params}`, { headers })
+  const headers = getHeaders()
+  // If no explicit page_size, request a large page to avoid pagination in admin
+  const sep = params.includes('?') ? '&' : '?'
+  const url = params ? `${API_BASE}/chat/knowledge-base/${params}${sep}page_size=500` : `${API_BASE}/chat/knowledge-base/?page_size=500`
+  const res = await fetch(url, { headers })
   if (!res.ok) throw new Error('Failed to fetch KB')
   return res.json()
 }
 
 export async function createKBItem(data) {
-  const headers = await getHeaders()
+  const headers = getHeaders()
   const res = await fetch(`${API_BASE}/chat/knowledge-base/`, {
     method: 'POST',
     headers,
@@ -50,7 +64,7 @@ export async function createKBItem(data) {
 }
 
 export async function updateKBItem(id, data) {
-  const headers = await getHeaders()
+  const headers = getHeaders()
   const res = await fetch(`${API_BASE}/chat/knowledge-base/${id}/`, {
     method: 'PATCH',
     headers,
@@ -61,7 +75,7 @@ export async function updateKBItem(id, data) {
 }
 
 export async function deleteKBItem(id) {
-  const headers = await getHeaders()
+  const headers = getHeaders()
   const res = await fetch(`${API_BASE}/chat/knowledge-base/${id}/`, {
     method: 'DELETE',
     headers,
@@ -71,14 +85,16 @@ export async function deleteKBItem(id) {
 
 // ── Missing Questions ─────────────────────────────────────
 export async function getMissingQuestions(params = '') {
-  const headers = await getHeaders()
-  const res = await fetch(`${API_BASE}/chat/missing-questions/${params}`, { headers })
+  const headers = getHeaders()
+  const sep = params.includes('?') ? '&' : '?'
+  const url = `${API_BASE}/chat/missing-questions/${params}${sep}page_size=200`
+  const res = await fetch(url, { headers })
   if (!res.ok) throw new Error('Failed to fetch missing questions')
   return res.json()
 }
 
 export async function updateMissingQuestion(id, data) {
-  const headers = await getHeaders()
+  const headers = getHeaders()
   const res = await fetch(`${API_BASE}/chat/missing-questions/${id}/`, {
     method: 'PATCH',
     headers,
@@ -90,14 +106,16 @@ export async function updateMissingQuestion(id, data) {
 
 // ── Forms ─────────────────────────────────────────────────
 export async function getForms(params = '') {
-  const headers = await getHeaders()
-  const res = await fetch(`${API_BASE}/chat/forms/${params}`, { headers })
+  const headers = getHeaders()
+  const sep = params.includes('?') ? '&' : '?'
+  const url = `${API_BASE}/chat/forms/${params}${sep}page_size=200`
+  const res = await fetch(url, { headers })
   if (!res.ok) throw new Error('Failed to fetch forms')
   return res.json()
 }
 
 export async function createForm(data) {
-  const headers = await getHeaders()
+  const headers = getHeaders()
   const res = await fetch(`${API_BASE}/chat/forms/`, {
     method: 'POST',
     headers,
@@ -108,7 +126,7 @@ export async function createForm(data) {
 }
 
 export async function updateForm(id, data) {
-  const headers = await getHeaders()
+  const headers = getHeaders()
   const res = await fetch(`${API_BASE}/chat/forms/${id}/`, {
     method: 'PATCH',
     headers,
@@ -119,7 +137,7 @@ export async function updateForm(id, data) {
 }
 
 export async function deleteForm(id) {
-  const headers = await getHeaders()
+  const headers = getHeaders()
   const res = await fetch(`${API_BASE}/chat/forms/${id}/`, {
     method: 'DELETE',
     headers,
@@ -129,14 +147,14 @@ export async function deleteForm(id) {
 
 // ── Admin Dashboard ──────────────────────────────────────
 export async function getAdminStats() {
-  const headers = await getHeaders()
+  const headers = getHeaders()
   const res = await fetch(`${API_BASE}/admin/stats/`, { headers })
   if (!res.ok) throw new Error('Failed to fetch admin stats')
   return res.json()
 }
 
 export async function getChatActivity() {
-  const headers = await getHeaders()
+  const headers = getHeaders()
   const res = await fetch(`${API_BASE}/admin/chat-activity/`, { headers })
   if (!res.ok) throw new Error('Failed to fetch chat activity')
   return res.json()
@@ -144,7 +162,7 @@ export async function getChatActivity() {
 
 // ── Analytics ─────────────────────────────────────────────
 export async function getAnalyticsOverview(days = 30) {
-  const headers = await getHeaders()
+  const headers = getHeaders()
   const res = await fetch(`${API_BASE}/analytics/?days=${days}`, { headers })
   if (!res.ok) throw new Error('Failed to fetch analytics')
   return res.json()
@@ -152,14 +170,16 @@ export async function getAnalyticsOverview(days = 30) {
 
 // ── Announcements ─────────────────────────────────────────
 export async function getAnnouncements(params = '') {
-  const headers = await getHeaders()
-  const res = await fetch(`${API_BASE}/chat/announcements/${params}`, { headers })
+  const headers = getHeaders()
+  const sep = params.includes('?') ? '&' : '?'
+  const url = `${API_BASE}/chat/announcements/${params}${sep}page_size=200`
+  const res = await fetch(url, { headers })
   if (!res.ok) throw new Error('Failed to fetch announcements')
   return res.json()
 }
 
 export async function createAnnouncement(data) {
-  const headers = await getHeaders()
+  const headers = getHeaders()
   const res = await fetch(`${API_BASE}/chat/announcements/`, {
     method: 'POST',
     headers,
@@ -170,7 +190,7 @@ export async function createAnnouncement(data) {
 }
 
 export async function updateAnnouncement(id, data) {
-  const headers = await getHeaders()
+  const headers = getHeaders()
   const res = await fetch(`${API_BASE}/chat/announcements/${id}/`, {
     method: 'PATCH',
     headers,
@@ -181,7 +201,7 @@ export async function updateAnnouncement(id, data) {
 }
 
 export async function deleteAnnouncement(id) {
-  const headers = await getHeaders()
+  const headers = getHeaders()
   const res = await fetch(`${API_BASE}/chat/announcements/${id}/`, {
     method: 'DELETE',
     headers,

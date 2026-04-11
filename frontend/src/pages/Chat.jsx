@@ -176,7 +176,7 @@ export default function Chat() {
               </p>
               <div className="flex flex-wrap justify-center gap-2 mb-8">
                 {[
-                  { icon: BookOpen, label: '46+ KB Articles' },
+                  { icon: BookOpen, label: '519+ KB Articles' },
                   { icon: Zap, label: 'Instant Answers' },
                   { icon: MessageSquare, label: 'EN & AR Support' },
                 ].map(({ icon: Icon, label }) => (
